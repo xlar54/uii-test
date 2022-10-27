@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Ultimate II+L Testing</title>
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+</head>
+
+<script>
+
+function starttests() {
+
+    let iterations = 0;
+    iterations = parseInt($("#txtIterations").val());
+
+    if(isNaN(iterations)) {
+        $("#errordiv").html("Invalid value");
+        return
+    }
+   
+    var tbody = $('#testtbl').children('tbody');
+    var table = tbody.length ? tbody : $('#testtbl');
+
+    for(let iteration=1; iteration<=iterations; iteration++) {
+
+        // build the row and make each cell accessible
+
+        let htmlFragment = "<tr id='iteration"+iteration+"'><td>"+iteration+"</td>";
+        
+        for(let testNum=1;testNum<6; testNum++)
+            htmlFragment += "<td id='iteration"+iteration+"_test"+testNum+"''></td>";
+        
+        htmlFragment += "</tr>"
+
+        table.append(htmlFragment);
+        
+        // execute the tests
+        for(let testNum=1;testNum<6;testNum++) {
+
+            doTest(iteration,testNum); 
+        }
+    }
+
+}
+
+function doTest(iteration, testNum) {
+
+    // this code calls the api that kicks off an individual python test
+    $.ajax({
+            url: "http://localhost:8100/api/test",
+            type: "POST",
+            data: {testNum: testNum},
+            success: function(result) {
+                updateTable(iteration, testNum, result);
+            }                        
+    });
+
+    
+
+}
+
+
+function updateTable(iteration, testNum, status) {
+
+    let cellOffset=parseInt(testNum)+1;  //starting cell for pass/fail images
+    //let tbody = $('#testtbl').children('tbody');
+    //let table = tbody.length ? tbody : $('#testtbl');
+    
+    const cell = $("#iteration"+iteration+"_test"+testNum);
+    
+    const imgFail="<img src='fail.png' />";
+    const imgPass="<img src='pass.png' />";
+    const imgErr="<img src='err.png' />";
+
+    status = status.trim();
+
+    switch(status)
+    {
+        case "pass":
+            cell.html(imgPass);
+            break;
+        case "fail":
+            cell.html(imgFail);
+            break;
+        default:
+            cell.html(imgErr);
+            break;
+    }
+
+    console.log('ok')
+
+
+
+}
+
+</script>
+
+<body>
+    <div class="base">
+        <h1>Ultimate II+L Testing Application</h1>
+        <p>(c)2022 Gideon's Logic</p>
+    </div>
+    
+
+    <button onclick="starttests()">Begin tests</button>
+    <label>Iterations:</label><input id="txtIterations" type="text" value="10" />
+
+    <div id="errordiv"></div>
+
+    <div id="testresults">
+        <table id="testtbl" border="1">
+            <tbody>
+            <tr>
+                <th>Iteration #</th>
+                <th>Script 1</th>
+                <th>Script 2</th>
+                <th>Script 3</th>
+                <th>Script 4</th>
+                <th>Script 5</th>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>

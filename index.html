@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Ultimate II+L Testing</title>
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+</head>
+
+<script>
+
+async function starttests() {
+
+    $.ajax({
+        url: "http://localhost:8100/api/start",
+        type: "POST",
+        data: {start: 'yes'}, //send this to server
+        success: function(returned) {
+
+            var tbody = $('#testtbl').children('tbody');
+            var table = tbody.length ? tbody : $('#testtbl');
+
+            for(let iteration=1; iteration<10; iteration++) {
+                let iteration=1;
+
+                // build the row and make each cell accessible
+
+                let htmlFragment = "<tr id='iteration"+iteration+"'><td>"+iteration+"</td>";
+                
+                for(let testNum=1;testNum<6; testNum++)
+                    htmlFragment += "<td id='iteration"+iteration+"_test"+testNum+"''></td>";
+               
+                htmlFragment += "</tr>"
+
+                table.append(htmlFragment);
+
+                for(let testNum=1;testNum<6;testNum++) {
+
+                    const result = doTest(testNum);
+
+                    console.log(result)
+                }
+            }
+        },
+        error: function() {
+            console.log("error")
+        }
+    });
+}
+
+async function doTest(testNum) {
+
+    // this code calls the api that kicks off an individual python test
+    const result = await $.ajax({
+                        url: "http://localhost:8100/api/test",
+                        type: "POST",
+                        data: {testNum: testNum}                        
+                    });
+
+    return result;
+}
+
+function updateTable(iteration, testNum, status) {
+
+    let cellOffset=parseInt(testNum)+1;  //starting cell for pass/fail images
+    //let tbody = $('#testtbl').children('tbody');
+    //let table = tbody.length ? tbody : $('#testtbl');
+    
+    let cell = $("#iteration"+iteration+"_test"+testNum);
+    
+    let imgFail="<img src='fail.png' />";
+    let imgPass="<img src='pass.png' />";
+
+    if(status=="pass") {
+        cell.html(imgPass);
+    }
+    else {
+        cell.html(imgFail);
+    }
+            
+}
+
+</script>
+
+<body>
+    <div class="base">
+        <h1>Ultimate II+L Testing Application</h1>
+        <p>(c)2022 Gideon's Logic</p>
+    </div>
+    
+
+    <button onclick="starttests()">Begin tests</button>
+
+    <table id="testtbl" border="1">
+        <tbody>
+        <tr>
+            <th>Iteration #</th>
+            <th>Script 1</th>
+            <th>Script 2</th>
+            <th>Script 3</th>
+            <th>Script 4</th>
+            <th>Script 5</th>
+        </tr>
+        </tbody>
+    </table>
+
+</body>
+
+</html>
